@@ -1,0 +1,12 @@
+# Build directories
+build/*
+release/*
+
+# Objects / executables / libraries
+*.out
+*.o
+*.a
+*.so
+*.obj
+*.exe
+*.dll
