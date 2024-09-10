@@ -7,7 +7,7 @@
 #define PROBLEM_LC_LFU_CACHE_HH_
 
 #include <cstddef>
-#include <queue>
+#include <map>
 #include <unordered_map>
 
 namespace caches {
@@ -16,50 +16,65 @@ namespace caches {
  * Cache implementation based on LFU (least-frequently used) caching policy.
  */
 template <typename T, typename KeyT>
-class LfuCache final {
-  struct Elem {
-    T page_;
-    std::size_t ref_count_;  ///< ref count for the given page
-  };
+class LfuCache {
+  using KeyRefCountIt = typename std::multimap<std::size_t, KeyT>::iterator;
 
-  std::unordered_map<KeyT, Elem> lookup_table_;
+  std::unordered_map<KeyT, T> lookup_table_;
   std::size_t sz_;  ///< cache size
 
-  std::size_t getRefCount(KeyT key) const noexcept {
-    return lookup_table_[key].ref_count_;
+  // TODO: можно ли эффективнее?
+  std::multimap<std::size_t, KeyT> to_invalidate_;
+  std::unordered_map<KeyT, KeyRefCountIt> ref_counts_;
+
+  bool full() const noexcept {
+    return lookup_table_.size() == sz_;
   }
 
-  struct LfuComparator {
-    LfuCache<T, KeyT>* cache_ptr_;
+  void insertElem(std::pair<KeyT, T> elem) {
+    lookup_table_.insert(elem);
+    auto it = to_invalidate_.insert(std::make_pair(1, elem.first));
+    ref_counts_.insert(std::make_pair(elem.first, it));
+  }
 
-    bool operator()(const KeyT& lhs, const KeyT& rhs) {
-      return cache_ptr_->getRefCount(lhs) > cache_ptr_->getRefCount(rhs);
-    }
-  } lfu_cmp_;
+  void popElem() noexcept {
+    auto it = to_invalidate_.begin();
+    auto key = it->second;
+    lookup_table_.erase(key);
+    ref_counts_.erase(key);
+    to_invalidate_.erase(it);
+  }
 
-  std::priority_queue<KeyT, std::vector<KeyT>, LfuComparator> page_queue_;
+  void incrementRefCount(KeyT key) {
+    auto old_it = ref_counts_.find(key);
+    auto old_it_to_invalidate = old_it->second;
 
-  bool full() const noexcept { return lookup_table_.size() == sz_; }
+    std::size_t old_count = old_it_to_invalidate->first;
+    to_invalidate_.erase(old_it_to_invalidate);
+    ref_counts_.erase(old_it);
+
+    auto it = to_invalidate_.insert(std::make_pair(old_count + 1, key));
+    ref_counts_.insert(std::make_pair(key, it));
+  }
 
  public:
-  LfuCache(std::size_t sz) noexcept : sz_(sz), lfu_cmp_({this}) {}
+  LfuCache(std::size_t sz) noexcept : sz_(sz) {}
 
   template <typename GetterT>
-  bool get(KeyT key, GetterT slow_page_getter) {
+  std::pair<T, bool> get(KeyT key, GetterT slow_page_getter) {
     auto match = lookup_table_.find(key);
 
     // page not found in cache
     if (match == lookup_table_.end()) {
       if (full()) {
-        page_queue_.pop();
+        popElem();
       }
-      page_queue_.push(key);
-      lookup_table_.insert(key, {slow_page_getter(key), 1});
-      return false;
+      T page = slow_page_getter(key);
+      insertElem(std::make_pair(key, page));
+      return std::make_pair(page, false);
     }
 
-    ++match->second.ref_count;
-    return true;
+    incrementRefCount(key);
+    return std::make_pair(match->second, true);
   }
 };
 

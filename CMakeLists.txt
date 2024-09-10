@@ -10,3 +10,6 @@ SET(SRCS
 
 add_executable(lcdriver ${SRCS})
 target_link_libraries(lcdriver lc)
+target_compile_features(lcdriver PRIVATE cxx_std_11)
+target_compile_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address> -Wall -Wextra -Wswitch-enum)
+target_link_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address>)
