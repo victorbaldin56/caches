@@ -10,3 +10,6 @@ release/*
 *.obj
 *.exe
 *.dll
+
+# Generated tests / data
+*.dat
