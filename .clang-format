@@ -7,3 +7,4 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 ReferenceAlignment: Left
 AllowShortFunctionsOnASingleLine: Empty
+SortIncludes: false
