@@ -14,16 +14,21 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-SET(SRCS
-  drivers/lfu_cache.cc
-)
+SET(APPS lfu;belady)
 
-add_executable(lcdriver ${SRCS})
-target_include_directories(lcdriver PRIVATE common)
-target_link_libraries(lcdriver lc)
-target_compile_features(lcdriver PRIVATE cxx_std_14)
-target_compile_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address> -Wall -Wextra -Wswitch-enum)
-target_link_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address>)
-target_link_libraries(lcdriver gtest_main)
+foreach(APP ${APPS})
+  add_executable(${APP} drivers/${APP}_cache.cc)
+  target_include_directories(${APP} PRIVATE common)
+  target_link_libraries(${APP} lc)
+  target_compile_features(${APP} PRIVATE cxx_std_14)
+  target_compile_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address> -Wall -Wextra -Wswitch-enum)
+  target_link_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address>)
+endforeach()
 
-add_test(NAME lctest COMMAND lcdriver)
+# Unit test build
+add_executable(test unit_tests/unit_tests.cc)
+target_link_libraries(test lc;gtest_main)
+target_include_directories(test PRIVATE common)
+target_compile_features(test PRIVATE cxx_std_14)
+target_compile_options(test PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address> -Wall -Wextra -Wswitch-enum)
+target_link_options(test PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address>)

@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 
+#include "belady_cache.hh"
 #include "common.hh"
 #include "lfu_cache.hh"
 
@@ -17,8 +18,20 @@ std::size_t getLfuHits(std::size_t cache_sz, std::vector<int> keys) {
   caches::LfuCache<int, int> cache{cache_sz};
   std::size_t hits = 0;
 
-  for (std::size_t i = 0; i < keys.size(); ++i) {
-    if (cache.get(keys[i], common::slowGetPage).second) {
+  for (const auto& key : keys) {
+    if (cache.get(key, common::slowGetPage).second) {
+      ++hits;
+    }
+  }
+  return hits;
+}
+
+std::size_t getBeladyHits(std::size_t cache_sz, std::vector<int> keys) {
+  caches::BeladyCache<int, int> cache{cache_sz, keys.cbegin(), keys.cend()};
+  std::size_t hits = 0;
+
+  for (const auto& key : keys) {
+    if (cache.get(key, common::slowGetPage).second) {
       ++hits;
     }
   }
@@ -35,7 +48,7 @@ TEST(cache_hits, lfu) {
 }
 
 TEST(cache_hits, belady) {
-
+  EXPECT_EQ(getBeladyHits(2, {1, 2, 1, 2, 1, 2}), 4);
 }
 
 int main(int argc, char** argv) {

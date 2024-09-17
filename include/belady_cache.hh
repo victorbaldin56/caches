@@ -7,23 +7,44 @@
 #define PROBLEM_LC_BELADY_CACHE_HH_
 
 #include <cstddef>
-#include <deque>
 #include <unordered_map>
+#include <vector>
 
 namespace caches {
 
 template <typename T, typename KeyT>
 class BeladyCache {
+  using IndexIt = typename std::unordered_map<KeyT, std::vector<std::size_t>>::iterator;
+
   std::size_t sz_;
+  std::size_t cur_index_ = 0;
+
   std::unordered_map<KeyT, T> lookup_table_;
-  std::deque<KeyT> expected_keys_;
+  std::unordered_map<KeyT, std::vector<std::size_t>> indexes_;
 
   bool full() const noexcept {
     return lookup_table_.size() == sz_;
   }
 
   void popElem() noexcept {
+    std::size_t pending_ind = 0;
+    IndexIt to_pop;
 
+    // находим ключ, который дальше всех
+    for (auto it = indexes_.begin(); it != indexes_.end(); ++it) {
+      auto key = it->first;
+      const auto& first_ind = it->second[0];
+
+      if (first_ind > pending_ind &&
+          lookup_table_.find(key) != lookup_table_.end()) {
+        pending_ind = first_ind;
+        to_pop = it;
+      }
+    }
+
+    KeyT key = to_pop->first;
+    indexes_.erase(to_pop);
+    lookup_table_.erase(key);
   }
 
   void insertElem(std::pair<KeyT, T> elem) {
@@ -33,15 +54,24 @@ class BeladyCache {
  public:
   template <typename It>
   BeladyCache(std::size_t sz, It begin, It end) : sz_(sz) {
+    std::size_t index = 0;
+
     for (auto it = begin; it != end; ++it) {
-      expected_keys_.push_back(*it);
+      KeyT key = *it;
+      auto match = indexes_.find(key);
+
+      if (match == indexes_.end()) {
+        indexes_.insert(std::make_pair(key, std::vector<std::size_t>{index}));
+      } else {
+        match->second.push_back(index);
+      }
+      ++index;
     }
   }
 
   template <typename GetterT>
   std::pair<T, bool> get(KeyT key, GetterT getter) {
     auto match = lookup_table_.find(key);
-    expected_keys_.pop_front();  // сдвигаемся на 1
 
     if (match == lookup_table_.end()) {
       if (full()) {
@@ -49,9 +79,12 @@ class BeladyCache {
       }
       T page = getter(key);
       insertElem(std::make_pair(key, page));
+
+      ++cur_index_;
       return std::make_pair(page, false);
     }
 
+    ++cur_index_;
     return std::make_pair(match->second, true);
   }
 };
