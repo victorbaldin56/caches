@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Interface header for the cache library.
+ * @brief  Interface header for the cache library.
  * @author Victor Baldin
  */
 #ifndef PROBLEM_LC_LFU_CACHE_HH_
@@ -57,10 +57,10 @@ class LfuCache {
   }
 
  public:
-  LfuCache(std::size_t sz) noexcept : sz_(sz) {}
+  LfuCache(std::size_t sz) : sz_(sz) {}
 
   template <typename GetterT>
-  std::pair<T, bool> get(KeyT key, GetterT slow_page_getter) {
+  std::pair<T, bool> get(KeyT key, GetterT getter) {
     auto match = lookup_table_.find(key);
 
     // page not found in cache
@@ -68,7 +68,7 @@ class LfuCache {
       if (full()) {
         popElem();
       }
-      T page = slow_page_getter(key);
+      T page = getter(key);
       insertElem(std::make_pair(key, page));
       return std::make_pair(page, false);
     }

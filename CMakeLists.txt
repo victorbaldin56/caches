@@ -15,14 +15,14 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 SET(SRCS
-  driver/main.cc
+  drivers/lfu_cache.cc
 )
 
 add_executable(lcdriver ${SRCS})
+target_include_directories(lcdriver PRIVATE common)
 target_link_libraries(lcdriver lc)
 target_compile_features(lcdriver PRIVATE cxx_std_14)
 target_compile_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address> -Wall -Wextra -Wswitch-enum)
-target_compile_definitions(lcdriver PRIVATE $<$<CONFIG:DEBUG>:TESTING>)
 target_link_options(lcdriver PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address>)
 target_link_libraries(lcdriver gtest_main)
 
