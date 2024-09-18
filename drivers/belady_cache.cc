@@ -4,6 +4,7 @@
  * @author Victor Baldin
  */
 #include <iostream>
+#include <vector>
 
 #include "belady_cache.hh"
 #include "common.hh"
