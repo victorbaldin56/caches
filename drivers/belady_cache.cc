@@ -3,6 +3,7 @@
  * @brief  Driver for Belady cache.
  * @author Victor Baldin
  */
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 
@@ -27,8 +28,12 @@ std::vector<int> getInputKeys(std::size_t count) {
 int main() {
   std::size_t cache_sz = 0, elem_count = 0;
   std::cin >> cache_sz >> elem_count;
-
   std::vector<int> keys = getInputKeys(elem_count);
+  if (std::cin.fail()) {
+    std::cerr << "Invalid input.\n";
+    return EXIT_FAILURE;
+  }
+
   caches::BeladyCache<int, int> cache{cache_sz, keys.cbegin(), keys.cend()};
 
   std::size_t hits = 0;

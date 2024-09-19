@@ -17,6 +17,11 @@ int main() {
   for (std::size_t i = 0; i < elem_count; ++i) {
     int key = 0;
     std::cin >> key;
+    if (std::cin.fail()) {
+      std::cerr << "Invalid input\n";
+      return EXIT_FAILURE;
+    }
+
     if (cache.get(key, common::slowGetPage).second) {
       ++hits;
     }
