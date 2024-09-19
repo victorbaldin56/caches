@@ -35,9 +35,14 @@ class BeladyCache {
     for (auto it = lookup_table_.begin(); it != lookup_table_.end(); ++it) {
       auto key = it->first;
       auto ind_it = indexes_.find(key);
-      auto& indexes = ind_it->second;
-      const auto& first_ind = indexes.front();
 
+      const auto& ind = ind_it->second;
+      if (ind.empty()) {
+        to_pop = it;
+        break;
+      }
+
+      std::size_t first_ind = ind.front();
       if (first_ind > pending_ind) {
         pending_ind = first_ind;
         to_pop = it;

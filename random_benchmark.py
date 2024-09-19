@@ -5,7 +5,7 @@ import random
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 samples_dir = cur_path + '/samples/'
-binary_dir = cur_path + '/build/'
+binary_dir = cur_path + '/release/'
 
 os.system(f'mkdir -p {samples_dir}')
 

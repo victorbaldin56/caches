@@ -13,8 +13,8 @@ foreach(APP ${APPS})
   target_compile_features(${APP} PRIVATE cxx_std_14)
 
   if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    target_compile_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined> -Wall -Wextra -Wswitch-enum)
-    target_link_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined>)
+    target_compile_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined,leak> -Wall -Wextra -Wswitch-enum)
+    target_link_options(${APP} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined,leak>)
   endif()
 endforeach()
 
