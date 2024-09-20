@@ -27,14 +27,20 @@ class BeladyCache {
     return lookup_table_.size() == sz_;
   }
 
-  void popElem() noexcept {
+  void popElem(KeyT current) noexcept {
+    auto ind_it = indexes_.find(current);
+    // если ключ не встретится больше никогда
+    if (ind_it->second.empty()) {
+      return;
+    }
+
     std::size_t pending_ind = cur_index_;
     CacheIt to_pop;
 
     // находим ключ, который дальше всех
     for (auto it = lookup_table_.begin(); it != lookup_table_.end(); ++it) {
       auto key = it->first;
-      auto ind_it = indexes_.find(key);
+      ind_it = indexes_.find(key);
 
       const auto& ind = ind_it->second;
       if (ind.empty()) {
@@ -87,11 +93,12 @@ class BeladyCache {
     auto match = lookup_table_.find(key);
     if (match == lookup_table_.end()) {
       if (full()) {
-        popElem();
+        popElem(key);
       }
       T page = getter(key);
-      insertElem(std::make_pair(key, page));
-
+      if (!full()) {
+        insertElem(std::make_pair(key, page));
+      }
       ++cur_index_;
       return std::make_pair(page, false);
     }

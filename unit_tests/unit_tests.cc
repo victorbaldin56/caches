@@ -14,11 +14,11 @@
 
 namespace {
 
-std::size_t getLfuHits(std::size_t cache_sz, std::vector<int> keys) {
+std::size_t getLfuHits(std::size_t cache_sz, const std::vector<int>& keys) {
   caches::LfuCache<int, int> cache{cache_sz};
   std::size_t hits = 0;
 
-  for (const auto& key : keys) {
+  for (auto key : keys) {
     if (cache.get(key, common::slowGetPage).second) {
       ++hits;
     }
@@ -26,11 +26,11 @@ std::size_t getLfuHits(std::size_t cache_sz, std::vector<int> keys) {
   return hits;
 }
 
-std::size_t getBeladyHits(std::size_t cache_sz, std::vector<int> keys) {
+std::size_t getBeladyHits(std::size_t cache_sz, const std::vector<int>& keys) {
   caches::BeladyCache<int, int> cache{cache_sz, keys.cbegin(), keys.cend()};
   std::size_t hits = 0;
 
-  for (const auto& key : keys) {
+  for (auto key : keys) {
     if (cache.get(key, common::slowGetPage).second) {
       ++hits;
     }
@@ -49,6 +49,7 @@ TEST(cache_hits, lfu) {
 
 TEST(cache_hits, belady) {
   EXPECT_EQ(getBeladyHits(2, {1, 2, 1, 2, 1, 2}), 4);
+  EXPECT_EQ(getBeladyHits(4, {1, 2, 3, 4, 1, 2, 5, 1, 2, 4, 3, 4}), 7);
 }
 
 int main(int argc, char** argv) {
