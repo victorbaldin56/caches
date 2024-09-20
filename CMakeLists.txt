@@ -18,7 +18,9 @@ foreach(APP ${APPS})
   endif()
 endforeach()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+include(CTest)
+
+if (${CMAKE_TESTING_ENABLED})
   include(FetchContent)
   FetchContent_Declare(
     googletest
@@ -30,8 +32,10 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   FetchContent_MakeAvailable(googletest)
 
   # Unit test build
-  add_executable(test unit_tests/unit_tests.cc)
-  target_link_libraries(test lc;gtest_main)
-  target_include_directories(test PRIVATE common)
-  target_compile_features(test PRIVATE cxx_std_14)
+  add_executable(utest unit_tests/unit_tests.cc)
+  target_link_libraries(utest lc;gtest_main)
+  target_include_directories(utest PRIVATE common)
+  target_compile_features(utest PRIVATE cxx_std_14)
+
+  add_test(NAME unit-test COMMAND ${CMAKE_SOURCE_DIR}/build/utest)
 endif()
